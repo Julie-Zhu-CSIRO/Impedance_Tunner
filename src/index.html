@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Motor Driver & VNA Impedance</title>
+    <!-- Link to the external stylesheet -->
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Link to the external JavaScript file, deferred to ensure HTML is parsed -->
+    <script type="module" src="./static/index.js" defer="defer"></script>
+</head>
+<body>
+    <!-- Main title of the application -->
+    <h1 class="title">Motor Driver & VNA Impedance</h1>
+
+    <!-- Wrapper for the main content sections (Motor Control and VNA Measurement) -->
+    <div class="main-content-wrapper">
+
+        <!-- Left Column: Motor Control Panel and new Results Panel -->
+        <div class="left-column-wrapper">
+            <!-- Motor Control Panel Section -->
+            <div class="grid-container">
+                <h2>Motor Control</h2> <!-- Title for the Motor Control panel -->
+                <!-- Table Headers for Motor Control -->
+                <div class="grid-item header">Motor</div>
+                <div class="grid-item header">Move Steps (Enter)</div>
+                <div class="grid-item header">Current Position</div>
+
+                <!-- ROW 1: Motor 1 Controls and Display -->
+                <div class="grid-item">Motor 1</div>
+                <div class="grid-item">
+                    <input type="number" id="numin-1" min="-200" max="200" placeholder="Enter steps">
+                </div>
+                <div class="grid-item">
+                    <span id="pos-1">0</span>
+                </div>
+
+                <!-- ROW 2: Motor 2 Controls and Display -->
+                <div class="grid-item">Motor 2</div>
+                <div class="grid-item">
+                    <input type="number" id="numin-2" min="-200" max="200" placeholder="Enter steps">
+                </div>
+                <div class="grid-item">
+                    <span id="pos-2">0</span>
+                </div>
+
+                <!-- ROW 3: Motor 3 Controls and Display -->
+                <div class="grid-item">Motor 3</div>
+                <div class="grid-item">
+                    <input type="number" id="numin-3" min="-200" max="200" placeholder="Enter steps">
+                </div>
+                <div class="grid-item">
+                    <span id="pos-3">0</span>
+                </div>
+
+                <!-- ROW 4: Motor 4 Controls and Display -->
+                <div class="grid-item">Motor 4</div>
+                <div class="grid-item">
+                    <input type="number" id="numin-4" min="-200" max="200" placeholder="Enter steps">
+                </div>
+                <div class="grid-item">
+                    <span id="pos-4">0</span>
+                </div>
+
+                <!-- Calibrate Button Row -->
+                <div class="grid-item"></div> <!-- Empty grid item for alignment -->
+                <div class="grid-item"></div> <!-- Empty grid item for alignment -->
+                <div class="grid-item">
+                    <button id="btn-calibrate" type="button">Calibrate All Motors</button>
+                </div>
+            </div> <!-- End of Motor Control Panel Section -->
+
+            <!-- Results Panel Section -->
+            <div class="results-container">
+                <h2>Results Panel</h2>
+                <div class="results-table-wrapper">
+                    <table id="impedance-results-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Motor Positions</th>
+                                <th>Freq (MHz)</th>
+                                <th>Real ($\Omega$)</th>
+                                <th>Imaginary ($\Omega$)</th>
+                                <th>Color</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Impedance data rows will be dynamically inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="results-controls">
+                    <div class="color-picker-section">
+                        <label for="dataset-color-select">Data Set Color:</label>
+                        <select id="dataset-color-select">
+                            <option value="#e74c3c">Red</option>
+                            <option value="#f39c12">Orange</option>
+                            <option value="#f1c40f">Yellow</option>
+                            <option value="#2ecc71">Green</option>
+                            <option value="#1abc9c">Cyan</option>
+                            <option value="#3498db" selected>Blue</option> <!-- Default to blue -->
+                        </select>
+                    </div>
+
+                    <div class="export-section">
+                        <label for="export-filename-input">Filename:</label>
+                        <input type="text" id="export-filename-input" placeholder="impedance_history">
+                        <button id="btn-export-custom-impedance" type="button">Save as CSV</button>
+                    </div>
+                </div>
+            </div> <!-- End of Results Panel Section -->
+        </div> <!-- End of Left Column Wrapper -->
+
+        <!-- VNA Impedance Measurement Panel Section -->
+        <div class="vna-container">
+            <h2>VNA Impedance Measurement</h2> <!-- Title for the VNA Measurement panel -->
+            <!-- Controls for VNA frequency input and measurement trigger -->
+            <div class="vna-controls">
+                <label for="vna-freq-input">Frequency (MHz):</label>
+                <input type="number" id="vna-freq-input" value="18.5" step="0.1" min="1" max="1000">
+                <button id="btn-get-impedance" type="button">Get Impedance</button>
+            </div>
+            <!-- Display area for Real and Imaginary Impedance values -->
+            <div class="vna-display">
+                <p>Real Impedance: <span id="real-impedance">N/A</span> &Omega;</p>
+                <p>Imaginary Impedance: <span id="imag-impedance">N/A</span> &Omega;</p>
+            </div>
+            <!-- Smith Chart Visualization Section -->
+            <div class="smith-chart-container">
+                <h3>Smith Chart </h3>
+                <canvas id="smith-chart-canvas" width="400" height="400"></canvas>
+                <p class="chart-note">All measured impedance points will be plotted here.</p>
+                <button id="btn-clear-history" type="button" style="margin-top: 10px;">Clear History</button>
+            </div>
+        </div> <!-- End of VNA Impedance Measurement Panel Section -->
+
+    </div> <!-- End of Main Content Wrapper -->
+</body>
+</html>

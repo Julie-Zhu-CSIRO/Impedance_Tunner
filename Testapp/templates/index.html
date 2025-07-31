@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Impedance Data Entry</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Impedance Data Entry</h1>
+
+        <div class="input-section">
+            <h2>Enter Impedance Data</h2>
+            <div class="form-group">
+                <label for="realPart">Real Part:</label>
+                <input type="number" id="realPart" placeholder="e.g., 50" step="any">
+            </div>
+            <div class="form-group">
+                <label for="imaginaryPart">Imaginary Part:</label>
+                <input type="number" id="imaginaryPart" placeholder="e.g., 25" step="any">
+            </div>
+            <button id="addDataBtn">Add Data</button>
+            <p id="message" class="message"></p>
+        </div>
+
+        <div class="data-table-section">
+            <h2>Input Data Table</h2>
+            <table id="impedanceTable">
+                <thead>
+                    <tr>
+                        <th>Data Number</th>
+                        <th>Real Part</th>
+                        <th>Imaginary Part</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data rows will be inserted here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="save-section">
+            <h2>Save Data to CSV</h2>
+            <div class="form-group">
+                <label for="filename">Filename (e.g., my_data):</label>
+                <input type="text" id="filename" value="impedance_data">
+            </div>
+            <button id="saveCsvBtn">Save as CSV</button>
+            <p id="saveMessage" class="message"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const realPartInput = document.getElementById('realPart');
+            const imaginaryPartInput = document.getElementById('imaginaryPart');
+            const addDataBtn = document.getElementById('addDataBtn');
+            const impedanceTableBody = document.querySelector('#impedanceTable tbody');
+            const messageElement = document.getElementById('message');
+            const filenameInput = document.getElementById('filename');
+            const saveCsvBtn = document.getElementById('saveCsvBtn');
+            const saveMessageElement = document.getElementById('saveMessage');
+
+            // Function to display messages
+            function showMessage(element, msg, isError = false) {
+                element.textContent = msg;
+                element.style.color = isError ? 'red' : 'green';
+                setTimeout(() => {
+                    element.textContent = '';
+                    element.style.color = '';
+                }, 3000); // Clear message after 3 seconds
+            }
+
+            // Function to add a row to the table
+            function addRowToTable(id, real, imaginary) {
+                const row = impedanceTableBody.insertRow();
+                row.insertCell(0).textContent = id;
+                row.insertCell(1).textContent = real;
+                row.insertCell(2).textContent = imaginary;
+            }
+
+            // Fetch and display existing data when the page loads
+            async function loadExistingData() {
+                try {
+                    const response = await fetch('/get_all_data');
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const data = await response.json();
+                    data.forEach(item => {
+                        addRowToTable(item.id, item.real, item.imaginary);
+                    });
+                } catch (error) {
+                    console.error('Error loading existing data:', error);
+                    showMessage(messageElement, 'Failed to load existing data.', true);
+                }
+            }
+
+            // Event listener for adding data
+            addDataBtn.addEventListener('click', async () => {
+                const real = realPartInput.value;
+                const imaginary = imaginaryPartInput.value;
+
+                if (real === '' || imaginary === '') {
+                    showMessage(messageElement, 'Please enter both real and imaginary parts.', true);
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/add_impedance', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ real: real, imaginary: imaginary })
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        addRowToTable(result.id, result.real, result.imaginary);
+                        realPartInput.value = ''; // Clear input fields
+                        imaginaryPartInput.value = '';
+                        showMessage(messageElement, 'Data added successfully!');
+                    } else {
+                        showMessage(messageElement, `Error: ${result.message}`, true);
+                    }
+                } catch (error) {
+                    console.error('Error adding impedance data:', error);
+                    showMessage(messageElement, 'Failed to add data. Please try again.', true);
+                }
+            });
+
+            // Event listener for saving data to CSV
+            saveCsvBtn.addEventListener('click', async () => {
+                const filename = filenameInput.value;
+                if (!filename) {
+                    showMessage(saveMessageElement, 'Please enter a filename.', true);
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/save_data_csv', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ filename: filename })
+                    });
+
+                    if (response.ok) {
+                        // Trigger file download
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.style.display = 'none';
+                        a.href = url;
+                        a.download = filename.endsWith('.csv') ? filename : `${filename}.csv`;
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        showMessage(saveMessageElement, 'CSV file generated and downloaded!');
+                    } else {
+                        const errorText = await response.text();
+                        showMessage(saveMessageElement, `Error saving CSV: ${errorText}`, true);
+                    }
+                } catch (error) {
+                    console.error('Error saving CSV:', error);
+                    showMessage(saveMessageElement, 'Failed to save CSV. Please try again.', true);
+                }
+            });
+
+            // Load any data that might exist if the server was running
+            loadExistingData();
+        });
+    </script>
+</body>
+</html>
