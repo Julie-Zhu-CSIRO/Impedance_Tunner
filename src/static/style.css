@@ -1,138 +1,201 @@
 /* General Body Styles */
 body {
-    font-family: 'Inter', sans-serif; /* Sets the primary font for the entire page */
-    background-color: #e0e0e0; /* Light grey background */
-    color: #333; /* Dark grey text color */
-    margin: 0; /* Removes default body margin */
-    padding: 20px; /* Adds padding around the entire page content */
-    display: flex; /* Uses flexbox for layout */
-    flex-direction: column; /* Arranges children (title, main wrapper) vertically */
-    align-items: center; /* Centers items horizontally within the body */
-    min-height: 100vh; /* Ensures the body takes at least the full viewport height */
+    font-family: 'Inter', sans-serif;
+    background-color: #e7e8f2; /* Light background from palette */
+    color: #223848; /* Dark text color from palette */
+    margin: 0;
+    padding: 6em;
+    /* display: flex; */
+    /* flex-direction: column;
+    align-items: center; */
+    /* min-height: 100vh; */
 }
 
 /* Main Application Title */
 .title {
-    font-size: 2.5em; /* Large font size for the main title */
-    font-weight: bold; /* Bold text */
-    color: #2c3e50; /* Dark blue-grey color */
-    margin-bottom: 30px; /* Space below the title */
-    text-align: center; /* Centers the text */
+    font-size: 2.5em;
+    font-weight: bold;
+    color: #223848; /* Dark color for the title */
+    margin-bottom: 30px;
+    text-align: center;
 }
 
-/* Wrapper for the Motor Control and VNA Measurement panels */
+/* Wrapper for the entire application content (excluding title) */
+.app-wrapper {
+    display: flex;
+    width: 100%;
+    /* max-width: 1200px; */
+    background-color: #ffffff; /* White background for content area */
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* Styles for the Tab Bar (Left Sidebar) */
+.tab-bar {
+    display: flex;
+    flex-direction: column;
+    width: 200px;
+    background-color: #223848; /* Dark background from palette */
+    padding: 20px 0;
+    border-right: 1px solid #e7e8f2; /* Light separator line */
+    flex-shrink: 0;
+}
+
+.tab-button {
+    background-color: transparent;
+    color: #e7e8f2; /* Light text color from palette */
+    padding: 15px 20px;
+    border: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tab-button:hover {
+    background-color: #31a998; /* Green from palette on hover */
+    color: #223848;
+}
+
+.tab-button.active {
+    background-color: #e7e8f2; /* Light background for active tab */
+    color: #223848; /* Dark text for active tab */
+    font-weight: bold;
+}
+
+/* Styles for the Tab Content Area */
+.tab-content-area {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+/* Styles for individual Tab Content */
+.tab-content {
+    display: none;
+    flex-direction: column;
+}
+
+/* Ensure the active tab content is displayed */
+.tab-content:first-child {
+     display: flex; /* Show the first tab by default */
+}
+
+/* Wrapper for the main content sections (Motor Control and VNA Measurement) */
 .main-content-wrapper {
-    display: flex; /* Uses flexbox to arrange child panels */
+    display: flex;
     flex-direction: row;
-    justify-content: center; /* Centers panels horizontally */
-    gap: 40px; /* Space between the two main panels (Motor Control and VNA) */
-    align-items: flex-start; /* Align items to the top */
-    width: 100%; /* Make the wrapper take full width */
-    max-width: 1200px; /* Optional: Set a max-width for very large screens to prevent panels from becoming too wide */
+    justify-content: center;
+    gap: 40px;
+    align-items: flex-start;
+    width: 100%;
 }
 
 /* Wrapper for the left column (Motor Control and Results Panel) */
 .left-column-wrapper {
     display: flex;
     flex-direction: column;
-    gap: 40px; /* Space between Motor Control and Results Panel */
-    flex: 1 1 calc(50% - 20px); /* Take up half the space, similar to other panels */
+    gap: 40px;
+    flex: 1 1 0; /* Changed flex-basis to 0 and allow it to grow */
 }
 
-/* Styles for the Motor Control Panel */
+/* Styles for the Motor Control Panel and other similar grid containers */
 .grid-container {
-    display: grid; /* Uses CSS Grid for precise layout */
-    grid-template-columns: auto 1fr auto; /* Defines three columns: auto-width, flexible, auto-width */
-    gap: 15px 10px; /* Vertical and horizontal gap between grid items */
-    padding: 20px; /* Padding inside the grid container */
-    background-color: #f9f9f9; /* Light background for the panel */
-    border-radius: 12px; /* Rounded corners */
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow */
-    flex: 1 1 calc(50% - 20px); /* Ensures panels are side-by-side and equal width, accounting for gap */
-    /* Removed min-width to allow more flexibility */
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 15px 10px;
+    padding: 20px;
+    background-color: #f9f9f9; /* Light background for panels */
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 /* Make the h2 inside grid-container span all columns */
 .grid-container h2 {
-    grid-column: 1 / -1; /* This makes the element span from the first to the last column line */
+    grid-column: 1 / -1;
     text-align: center;
-    color: #2c3e50;
-    margin: 0 0 10px 0; /* Adjust margin */
+    color: #223848; /* Dark color for headers */
+    margin: 0 0 10px 0;
 }
 
 /* Styling for grid headers */
 .grid-item.header {
-    font-weight: bold; /* Bold text for headers */
-    background-color: #ecf0f1; /* Light grey background for headers */
-    padding: 8px 10px; /* Padding inside headers */
-    border-radius: 5px; /* Rounded corners for headers */
-    text-align: center; /* Center-align text in headers */
+    font-weight: bold;
+    background-color: #e7e8f2; /* Light background from palette */
+    color: #223848; /* Dark text color */
+    padding: 8px 10px;
+    border-radius: 5px;
+    text-align: center;
 }
 
 /* Styling for general grid items */
 .grid-item {
-    padding: 8px 0; /* Padding for regular grid items */
-    display: flex; /* Use flexbox for vertical alignment */
-    align-items: center; /* Center items vertically */
-    justify-content: center; /* Center items horizontally */
-    font-size: 1.0em; /* Font size */
-    color: #34495e; /* Darker text color */
+    padding: 8px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.0em;
+    color: #223848; /* Dark text color */
 }
 
 /* Input field specific styling */
 .grid-item input[type="number"] {
-    width: 80%; /* Occupy 80% of the grid cell width */
-    padding: 8px 10px; /* Padding inside input */
+    width: 80%;
+    padding: 8px 10px;
     border: 1px solid #bdc3c7; /* Light grey border */
-    border-radius: 5px; /* Rounded corners */
-    text-align: center; /* Center text input */
-    font-size: 1em; /* Font size */
-    transition: border-color 0.3s ease; /* Smooth transition for border color */
+    border-radius: 5px;
+    text-align: center;
+    font-size: 1em;
+    transition: border-color 0.3s ease;
+    background-color: #ffffff;
+    color: #223848;
 }
 
 .grid-item input[type="number"]:focus {
-    border-color: #3498db; /* Blue border on focus */
-    outline: none; /* Remove default outline */
+    border-color: #31a998; /* Green from palette on focus */
+    outline: none;
 }
 
 /* Button styling */
 button {
-    background-color: #3498db; /* Blue background */
-    color: white; /* White text */
-    padding: 10px 20px; /* Padding inside button */
-    border: none; /* No border */
-    border-radius: 8px; /* Rounded corners */
-    cursor: pointer; /* Pointer cursor on hover */
-    font-size: 1.1em; /* Larger font size */
-    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
+    background-color: #31a998; /* Green from palette */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background-color 0.3s ease, transform 0.2s ease;
 }
 
-button:hover {
-    background-color: #2980b9; /* Darker blue on hover */
-    transform: translateY(-2px); /* Slight lift effect */
+button:not(.tab-button):hover {
+    background-color: #2b8e7b; /* Darker green on hover */
+    transform: translateY(-2px);
 }
 
-button:active {
-    background-color: #1a659e; /* Even darker blue on active */
-    transform: translateY(0); /* Reset lift effect */
+button:not(.tab-button):active {
+    background-color: #257a69; /* Even darker green on active */
+    transform: translateY(0);
 }
 
 /* Styles for the VNA Impedance Measurement Panel */
 .vna-container {
-    display: flex; /* Uses flexbox for internal layout */
-    flex-direction: column; /* Arranges children vertically */
-    align-items: center; /* Centers children horizontally */
-    gap: 20px; /* Space between internal elements */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
     padding: 20px;
-    background-color: #f9f9f9;
+    background-color: #f9f9f9; /* Light background for panels */
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    flex: 1 1 calc(50% - 20px); /* Ensures panels are side-by-side and equal width, accounting for gap */
-    /* Removed min-width to allow more flexibility */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    flex: 1 1 0; /* Changed flex-basis to 0 and allow it to grow */
 }
 
 .vna-container h2 {
-    color: #2c3e50; /* Dark blue-grey for VNA title */
+    color: #223848; /* Dark color for headers */
     margin-bottom: 10px;
 }
 
@@ -140,15 +203,15 @@ button:active {
     display: flex;
     align-items: center;
     gap: 10px;
-    width: 100%; /* Take full width for alignment */
-    justify-content: center; /* Center controls */
-    flex-wrap: wrap; /* Allow wrapping on small screens */
+    width: 100%;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .vna-controls label {
     font-weight: bold;
-    color: #555;
-    white-space: nowrap; /* Prevent label from breaking */
+    color: #223848; /* Dark text color */
+    white-space: nowrap;
 }
 
 .vna-controls input[type="number"] {
@@ -156,8 +219,10 @@ button:active {
     border: 1px solid #bdc3c7;
     border-radius: 5px;
     font-size: 1em;
-    width: 100px; /* Fixed width for frequency input */
+    width: 100px;
     text-align: center;
+    background-color: #ffffff;
+    color: #223848;
 }
 
 .vna-display {
@@ -168,68 +233,66 @@ button:active {
 .vna-display p {
     font-size: 1.1em;
     margin: 5px 0;
-    color: #34495e;
+    color: #223848; /* Dark text color */
 }
 
 .vna-display span {
     font-weight: bold;
-    color: #e67e22; /* Orange color for values */
+    color: #f07944; /* Orange from palette for values */
 }
 
 /* Container for the Smith Chart */
 .smith-chart-container {
-    text-align: center; /* Centers content within the container */
-    margin-top: 20px; /* Space above the container */
-    width: 100%; /* Takes full width */
+    text-align: center;
+    margin-top: 20px;
+    width: 100%;
 }
 
 /* Title for the Smith Chart section */
 .smith-chart-container h3 {
-    color: #2c3e50; /* Dark blue-grey color */
-    margin-bottom: 10px; /* Space below the title */
+    color: #223848; /* Dark color for headers */
+    margin-bottom: 10px;
 }
 
 /* Styles for the Smith Chart canvas */
-#smith-chart-canvas {
-    border: 2px solid #3498db; /* Blue border */
+#smith-chart-canvas, #smith-chart-canvas-sweep {
+    border: 2px solid #223848; /* Dark border */
     background-color: #f8f8f8; /* Light background */
-    border-radius: 10px; /* Rounded corners */
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1); /* Inner shadow */
-    max-width: 100%; /* Ensures canvas is responsive and doesn't overflow */
-    height: auto; /* Maintains aspect ratio */
-
+    border-radius: 10px;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    height: auto;
     background-image: url('smithBG.png'); /* Using the local smithBG.png file */
-    background-size: cover; /* Covers the entire canvas area */
-    background-position: center; /* Centers the background image */
-    background-repeat: no-repeat; /* Prevents the image from repeating */
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 /* Note below the Smith Chart */
 .chart-note {
-    font-size: 0.9em; /* Smaller font size */
-    color: #7f8c8d; /* Grey color */
-    margin-top: 10px; /* Space above the note */
+    font-size: 0.9em;
+    color: #555; /* Darker grey color */
+    margin-top: 10px;
 }
 
 /* NEW: Add margin to the export button for separation */
 #btn-export-impedance {
-    margin-top: 15px; /* Adds space above the export button */
-    background-color: #f39c12; /* Example: orange color */
+    margin-top: 15px;
+    background-color: #f07944; /* Orange from palette for export */
 }
 
 #btn-export-impedance:hover {
-    background-color: #e67e22; /* Darker orange on hover */
+    background-color: #d16638; /* Darker orange on hover */
 }
 
 /* Styles for the custom message box */
 .message-box {
-    /* These styles are also dynamically added by JS, but good to have here for reference */
     position: fixed;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #f4f4f4;
-    border: 1px solid #ccc;
+    background-color: #ffffff; /* White background */
+    border: 1px solid #bdc3c7; /* Light grey border */
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
@@ -238,17 +301,23 @@ button:active {
     max-width: 300px;
     max-height: 90vh;
     overflow: scroll;
+    color: #223848; /* Dark text */
 }
 .message-box.error {
-    background-color: #ffe0e0;
-    border-color: #e00;
+    background-color: #e74c3c; /* Red background for errors */
+    border-color: #c0392b;
+    color: white;
 }
 .message-box p {
     margin-bottom: 15px;
     font-size: 1.1em;
+    color: #223848; /* Dark text color */
+}
+.message-box.error p {
+     color: white;
 }
 .message-box .close-btn {
-    background-color: #3498db;
+    background-color: #31a998; /* Green from palette */
     color: white;
     padding: 8px 15px;
     border: none;
@@ -256,7 +325,7 @@ button:active {
     cursor: pointer;
 }
 .message-box .close-btn:hover {
-    background-color: #2980b9;
+    background-color: #2b8e7b;
 }
 
 /* Styles for the Results Panel */
@@ -266,13 +335,13 @@ button:active {
     align-items: center;
     gap: 20px;
     padding: 20px;
-    background-color: #f9f9f9;
+    background-color: #f9f9f9; /* Light background for panels */
     border-radius: 12px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
 .results-container h2 {
-    color: #2c3e50;
+    color: #223848; /* Dark color for headers */
     margin-bottom: 10px;
 }
 
@@ -283,39 +352,39 @@ button:active {
     overflow-y: auto; /* Enable vertical scrolling */
     border: 1px solid #bdc3c7;
     border-radius: 8px;
-    background-color: #ecf0f1;
+    background-color: #ffffff; /* White background for table */
     box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.05);
 }
 
 #impedance-results-table {
     width: 100%;
-    border-collapse: collapse; /* Collapse borders between cells */
+    border-collapse: collapse;
     font-size: 0.95em;
-    color: #34495e;
+    color: #223848; /* Dark text color */
 }
 
 #impedance-results-table th,
 #impedance-results-table td {
     padding: 10px;
     text-align: center;
-    border-bottom: 1px solid #dcdcdc; /* Light border for rows */
+    border-bottom: 1px solid #e7e8f2; /* Light border for rows */
 }
 
 #impedance-results-table th {
-    background-color: #3498db;
-    color: white;
+    background-color: #223848; /* Dark background for headers */
+    color: #e7e8f2; /* Light text color */
     font-weight: bold;
-    position: sticky; /* Make header sticky for scrolling */
-    top: 0; /* Stick to the top of the scrollable container */
-    z-index: 1; /* Ensure header is above scrolling content */
+    position: sticky;
+    top: 0;
+    z-index: 1;
 }
 
 #impedance-results-table tbody tr:nth-child(even) {
-    background-color: #f2f2f2; /* Zebra striping for readability */
+    background-color: #f2f2f2; /* Light grey for zebra striping */
 }
 
 #impedance-results-table tbody tr:hover {
-    background-color: #e8f4f8; /* Highlight row on hover */
+    background-color: #e7e8f2; /* Light background on hover */
 }
 
 /* Small circle for color display in table */
@@ -324,7 +393,7 @@ button:active {
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    border: 1px solid #555;
+    border: 1px solid #223848; /* Dark border */
     vertical-align: middle;
 }
 
@@ -343,12 +412,12 @@ button:active {
     gap: 10px;
     width: 100%;
     justify-content: center;
-    flex-wrap: wrap; /* Allow wrapping on smaller screens */
+    flex-wrap: wrap;
 }
 
 .color-picker-section label, .export-section label {
     font-weight: bold;
-    color: #555;
+    color: #223848; /* Dark text color */
 }
 
 #dataset-color-select {
@@ -357,7 +426,8 @@ button:active {
     border-radius: 5px;
     font-size: 1em;
     cursor: pointer;
-    background-color: white;
+    background-color: #ffffff;
+    color: #223848;
 }
 
 #export-filename-input {
@@ -365,27 +435,89 @@ button:active {
     border: 1px solid #bdc3c7;
     border-radius: 5px;
     font-size: 1em;
-    width: 180px; /* Adjust width as needed */
+    width: 180px;
+    background-color: #ffffff;
+    color: #223848;
 }
 
 #btn-export-custom-impedance {
-    background-color: #27ae60; /* Green for export */
+    background-color: #f07944; /* Orange from palette for export */
 }
 
 #btn-export-custom-impedance:hover {
-    background-color: #229a55; /* Darker green on hover */
+    background-color: #d16638; /* Darker orange on hover */
+}
+
+/* Styles for the Parameter Sweep tab - Left Column */
+#parameter-sweep .left-column-wrapper {
+    background-color: #f9f9f9; /* Light background for panels */
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    flex: 1 1 0; /* Changed flex-basis to 0 and allow it to grow */
+    
+    h2 {
+         text-align: center;
+         color: #223848; /* Dark color for headers */
+         margin-bottom: 10px;
+    }
+
+    div {
+        align-items: center;
+        gap: 10px;
+        justify-content: space-between;
+    }
+}
+
+#parameter-sweep .left-column-wrapper label {
+     font-weight: bold;
+    color: #223848; /* Dark text color */
+}
+
+#parameter-sweep .left-column-wrapper input[type="number"] {
+    padding: 8px 10px;
+    border: 1px solid #bdc3c7;
+    border-radius: 5px;
+    font-size: 1em;
+    width: 100px;
+    text-align: center;
+    background-color: #ffffff;
+    color: #223848;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .main-content-wrapper {
-        flex-direction: column; /* Stack panels vertically on small screens */
-        gap: 20px; /* Reduce gap */
+    .app-wrapper {
+        flex-direction: column;
     }
 
-    .left-column-wrapper {
-        flex: none; /* Remove flex sizing */
-        width: 100%; /* Take full width */
+    .tab-bar {
+        flex-direction: row;
+        width: 100%;
+        border-right: none;
+        border-bottom: 1px solid #e7e8f2;
+        padding: 10px 0;
+        justify-content: center;
+        gap: 10px;
+    }
+
+    .tab-button {
+        width: auto;
+        text-align: center;
+        padding: 10px 15px;
+    }
+
+    .main-content-wrapper {
+        flex-direction: column;
+        gap: 20px;
+    }
+
+    .left-column-wrapper, .vna-container {
+        flex: none;
+        width: 100%;
     }
 
     .vna-controls, .color-picker-section, .export-section {
