@@ -1,6 +1,7 @@
 from flask import Flask, send_from_directory, request, flash, jsonify,send_file
-# import Impedance_Tuning as it
+import Impedance_Tuning as it
 from vna_impedance import VNAController, VNA_ADDRESS
+import traceback
 
 import csv # Import csv module for handling CSV files
 import io
@@ -76,22 +77,22 @@ def staticFileHandler(fileName):
 # Motor Control Event Handlers .....................................................
 @app.route('/button/<int:n>_<int(signed=True):value>')
 def doButtonThing(n,value):
-    # it.motors[n-1].move_motor(value)
+    it.motors[n-1].move_motor(value)
     position = it.motors[n-1].request_position()
     print(f'button {n} was pressed, motor move {position} steps')
     return f'{position}'
 
 @app.route('/button/calibrate')
 def calibrate_motor():
-    # it.reset_position()
+    it.reset_position()
     print('motor position reseted')
     return f'Reset Position OK'
 
 @app.route('/button/getAllPositions')
 def getAllPositions():
     position_all = []
-    # for i in range(4):
-    #     position_all.append(it.motors[i].request_position())
+    for i in range(4):
+        position_all.append(it.motors[i].request_position())
     print(f'All motors position listed: {position_all}')
     # create comma separated values (csv) string
     positionStr = (',').join(position_all)
@@ -226,29 +227,29 @@ def start_sweep():
     Performs the sweep and returns the collected data.
     """
     data = request.get_json()
-    motor_index = data.get('motor_index')
-    start_value = data.get('start_value')
-    stop_value = data.get('stop_value')
-    step_size = data.get('step_size')
-    frequency_mhz = data.get('frequency_mhz')
+    motor_index:int = int(data.get('motor_index'))
+    start_value:int = int(data.get('start_value'))
+    stop_value:int = int(data.get('stop_value'))
+    step_size:int = int(data.get('step_size'))
+    frequency_mhz:float = float(data.get('frequency_mhz'))
     dataset_color = data.get('dataset_color', '#3498db') # Default color for sweep
 
+    print("start sweep")
     if any(val is None for val in [motor_index, start_value, stop_value, step_size, frequency_mhz]):
         return jsonify({"error": "Missing parameter sweep configuration."}), 400
-
+    
     target_frequency_hz = frequency_mhz * 1e6 # Convert MHz to Hz
 
     global sweep_history, simulated_motor_positions
     sweep_history = [] # Clear previous sweep data
 
-    print(f"Starting sweep for motor {motor_index+1}: {start_value} to {stop_value} with step {step_size}"
-          f" at {frequency_mhz} MHz.")
+    print(f"Starting sweep for motor {int(motor_index)+1}: {start_value} to {stop_value} with step {step_size}")
 
     try:
         # Move to start position
-        #it.motors[motor_index-1].move_motor(start_value)
+        it.motors[motor_index].move_motor(start_value)
 
-        current_position = it.motors[motor_index-1].request_position()
+        current_position = it.motors[motor_index].request_position()
         # Adjust stop_value check to handle both increasing and decreasing sweeps
         is_increasing = stop_value >= start_value
 
@@ -261,30 +262,30 @@ def start_sweep():
         if not is_increasing and step_size >= 0:
              return jsonify({"error": "Step size must be negative for decreasing sweep."}), 400
 
-        i = 0;
+        i = 0
         while current_position < stop_value:
-            it.motors[motor_index-1].move_motor(step_size)
-            current_position = it.motors[motor_index-1].request_position() # Get actual position after move
+            it.motors[motor_index].move_motor(step_size)
+            current_position = it.motors[motor_index].request_position() # Get actual position after move
 
             # Get impedance data
             impedance_data_from_vna = vna.get_impedance(target_frequency_hz)
 
             if "error" in impedance_data_from_vna:
-                print(f"Error getting impedance at position {current_position_actual}: {impedance_data_from_vna['error']}")
+                print(f"Error getting impedance at position {current_position}: {impedance_data_from_vna['error']}")
                 # Decide how to handle VNA errors during sweep: skip point, stop sweep, etc.
                 # For now, we'll just continue with the sweep but log the error.
                 continue # Skip this data point if VNA error occurs
 
             data_point = {
                 'id': i + 1, # Data point number in the sweep
-                'motor_positions': current_positions,
+                'motor_positions': current_position,
                 'frequency_mhz': frequency_mhz,
                 'real_impedance': impedance_data_from_vna['real_impedance'],
                 'imag_impedance': impedance_data_from_vna['imag_impedance'],
                 'color': dataset_color # Use the selected dataset color
             }
             sweep_history.append(data_point)
-            print(f"Measured at pos {current_position_actual}: R={data_point['real_impedance']:.2f}, X={data_point['imag_impedance']:.2f}")
+            print(f"Measured at pos {current_position}: R={data_point['real_impedance']:.2f}, X={data_point['imag_impedance']:.2f}")
 
             i = i+1
         print("Sweep finished.")
@@ -292,7 +293,9 @@ def start_sweep():
 
     except Exception as e:
         print(f"An error occurred during the sweep: {e}")
-        return jsonify({"error": f"An error occurred during the sweep: {e}"}), 500
+        tracebackStr = traceback.format_exc()
+        print(tracebackStr)
+        return jsonify({"error": f"An error occurred during the sweep: {e}\n{tracebackStr}"}), 500
 
 
 @app.route('/save_sweep_results_csv', methods=['POST'])

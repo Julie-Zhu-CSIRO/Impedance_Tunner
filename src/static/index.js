@@ -26,6 +26,18 @@ let datasetColorSelect = document.querySelector('#dataset-color-select'); // Dro
 let exportFilenameInput = document.querySelector('#export-filename-input'); // Input for custom export filename
 let btnExportCustomImpedance = document.querySelector('#btn-export-custom-impedance'); // Button to export with custom filename
 
+// --- Selectors for Parameter Sweep Elements ---
+let btnStartSweep = document.querySelector('#btn-start-sweep'); // Button to start a frequency sweep
+let sweepImpedanceResultsTableBody = document.querySelector('#impedance-results-table-sweep tbody'); // Table body for sweep impedance results
+let realImpedanceSweepSpan = document.querySelector('#real-impedance-sweep'); // Span to display real impedance for sweep
+let imagImpedanceSweepSpan = document.querySelector('#imag-impedance-sweep'); // Span to display imaginary impedance for sweep
+let smithChartCanvasSweep = document.querySelector('#smith-chart-canvas-sweep'); // Canvas for Sweep Smith Chart
+let ctxSweep = smithChartCanvasSweep.getContext('2d'); // 2D rendering context for the sweep canvas
+let btnClearHistorySweep = document.querySelector('#btn-clear-history-sweep'); // Button to clear sweep impedance history
+let exportFilenameInputSweep = document.querySelector('#export-filename-input-sweep'); // Input for custom sweep export filename
+let btnExportCustomImpedanceSweep = document.querySelector('#btn-export-custom-impedance-sweep'); // Button to export sweep with custom filename
+let datasetColorSelectSweep = document.querySelector('#dataset-color-select-sweep'); // Dropdown for sweep dataset color
+
 // Global variable to store impedance history
 // Each entry will be:
 // {
@@ -37,6 +49,17 @@ let btnExportCustomImpedance = document.querySelector('#btn-export-custom-impeda
 // }
 let impedanceHistory = [];
 let currentDatasetColor = datasetColorSelect.value; // Initialize with default selected color
+
+// Global variable to store sweep impedance history
+// Each entry will be:
+// {
+//   motor_positions: [pos1, pos2, pos3, pos4],
+//   frequency_mhz: number,
+//   real_impedance: number,
+//   imag_impedance: number,
+//   color: string
+// }
+let sweepImpedanceHistory = [];
 
 // --- Helper for custom alert/message box ---
 /**
@@ -138,10 +161,10 @@ button_calibrate.addEventListener('click', async () => {
 // --- VNA Impedance Functions ---------------------------------------------------------------------
 /**
  * Draws impedance points on a simplified Smith Chart canvas.
- * @param {Array} impedancePoints - An array of impedance objects {real_impedance, imag_impedance, color}.
+ * @param {HTMLCanvasElement} canvas - The canvas element to draw on.
+ * @param {Array} impedancePoints - An array of impedance objects {real_impedance, imag_impedance, color, ...}.
 */
-function drawSmithChart(impedancePoints) {
-    const canvas = smithChartCanvas;
+function drawSmithChart(canvas, impedancePoints) {
     const ctx = canvas.getContext('2d');
     const centerX = canvas.width / 2;
     const centerY = canvas.height / 2;
@@ -206,7 +229,6 @@ function drawSmithChart(impedancePoints) {
     });
 }
 
-
 // Event listener for the Get Impedance button
 btnGetImpedance.addEventListener('click', async () => {
     // Get the frequency from the input field and parse it as a float
@@ -261,7 +283,7 @@ btnGetImpedance.addEventListener('click', async () => {
 
             // Update the impedance table and redraw the Smith chart with all points
             updateImpedanceTable();
-            drawSmithChart(impedanceHistory); // Pass the entire history to draw
+            drawSmithChart(smithChartCanvas, impedanceHistory); // Pass the entire history to draw
 
         } else {
             // Handle error response from Flask (e.g., VNA not connected)
@@ -310,7 +332,6 @@ function updateImpedanceTable() {
     // Scroll to the bottom of the table to show the latest entry
     impedanceResultsTableBody.parentElement.scrollTop = impedanceResultsTableBody.parentElement.scrollHeight;
 }
-
 
 // Event listener for the Data Set Color dropdown
 datasetColorSelect.addEventListener('change', (event) => {
@@ -365,7 +386,7 @@ btnClearHistory.addEventListener('click', async () => {
         if (response.ok) {
             impedanceHistory = []; // Clear client-side history
             updateImpedanceTable(); // Update table to show no data
-            drawSmithChart(impedanceHistory); // Clear Smith Chart
+            drawSmithChart(smithChartCanvas,impedanceHistory); // Clear Smith Chart
             showMessage('Impedance history cleared successfully!');
         } else {
             const errorText = await response.text();
@@ -376,6 +397,164 @@ btnClearHistory.addEventListener('click', async () => {
         showMessage('Failed to clear history. Please try again.', 'error');
     }
 });
+
+
+// --- Sweep Parameter Functions ----------------------------------------------------------------------
+// Event listener for the Start Sweep button
+btnStartSweep.addEventListener('click', async () => {
+    startSweep();
+});
+
+// Starts a frequency sweep.
+async function startSweep() {
+    // Get the selected motor index from the dropdown
+    const sweepMotorSelect = document.querySelector('#sweep-motor-select');
+    const selectedMotorIndex = sweepMotorSelect.value; // Get the value directly
+
+    // Get the other sweep parameters
+    const startValue = parseFloat(document.querySelector('#sweep-start-value').value);
+    const stopValue = parseFloat(document.querySelector('#sweep-stop-value').value);
+    const stepSize = parseFloat(document.querySelector('#sweep-step-size').value);
+    const frequencyMhz = parseFloat(document.querySelector('#sweep-freq-input').value);
+
+    realImpedanceSweepSpan.innerHTML = 'Measuring...';
+    imagImpedanceSweepSpan.innerHTML = 'Measuring...';
+
+    let url = `${location.protocol}//${location.host}/start_sweep`;
+    try {
+        let response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json' // Indicate that the body is JSON
+            },
+            body: JSON.stringify({
+                motor_index: selectedMotorIndex,
+                start_value: startValue,
+                stop_value: stopValue,
+                step_size: stepSize,
+                frequency_mhz: frequencyMhz
+                // Add other sweep parameters here as needed by your Flask endpoint
+            })
+        });
+
+        if (response.ok) {
+            showMessage('Frequency sweep started successfully!');
+        } else {
+            const errorText = await response.text();
+            showMessage(`Error starting sweep: ${errorText}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error starting sweep:', error);
+        showMessage('Failed to start sweep. Please try again.', 'error');
+    }
+}
+
+/**
+ * Clears the sweep impedance history and updates the display.
+ */
+async function btnClearSweepHistory() {
+    sweepImpedanceHistory = []; // Clear client-side history
+    updateSweepImpedanceTable(); // Update table to show no data
+    drawSmithChart(smithChartCanvasSweep, sweepImpedanceHistory); // Clear Smith Chart
+    showMessage('Sweep impedance history cleared successfully!');
+}
+
+/**
+ * Updates the sweep impedance results table with the data from sweepImpedanceHistory.
+ */
+function updateSweepImpedanceTable() {
+    sweepImpedanceResultsTableBody.innerHTML = ''; // Clear existing rows
+
+    if (sweepImpedanceHistory.length === 0) {
+        sweepImpedanceResultsTableBody.innerHTML = '<tr><td colspan="6">No sweep impedance data yet.</td></tr>';
+        return;
+    }
+
+    sweepImpedanceHistory.forEach((data, index) => {
+        const row = sweepImpedanceResultsTableBody.insertRow();
+        row.insertCell().textContent = index + 1;
+        row.insertCell().textContent = data.motor_positions ? data.motor_positions.join(', ') : 'N/A'; // Motor positions (handle potential absence)
+        row.insertCell().textContent = data.frequency_mhz.toFixed(1); // Frequency
+        row.insertCell().textContent = data.real_impedance.toFixed(2);
+        row.insertCell().textContent = data.imag_impedance.toFixed(2);
+
+        // Create a colored dot for the color column
+        const colorCell = row.insertCell();
+        const colorDot = document.createElement('span');
+        colorDot.classList.add('color-dot');
+        colorDot.style.backgroundColor = data.color;
+        colorCell.appendChild(colorDot);
+    });
+
+    // Scroll to the bottom of the table to show the latest entry
+    sweepImpedanceResultsTableBody.parentElement.scrollTop = sweepImpedanceResultsTableBody.parentElement.scrollHeight;
+}
+
+/**
+ * Handles the export of sweep impedance data to CSV.
+ */
+async function handleSweepExport() {
+    const filename = exportFilenameInputSweep.value;
+    if (!filename) {
+        showMessage('Please enter a filename for sweep export.', 'error');
+        return;
+    }
+    try {
+        // You will need a backend endpoint that specifically saves the sweep history.
+        // Assuming you have a /save_sweep_data_csv endpoint
+        const response = await fetch('/save_sweep_data_csv', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ filename: filename, data: sweepImpedanceHistory }) // Send the history data
+        });
+
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename.endsWith('.csv') ? filename : `${filename}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+// Event listener for the Clear History button
+btnClearHistory.addEventListener('click', async () => {
+    try {
+        const response = await fetch('/clear_impedance_history', {
+            method: 'POST' // Use POST for state-changing operations
+        });
+
+        if (response.ok) {
+            impedanceHistory = []; // Clear client-side history
+            updateImpedanceTable(); // Update table to show no data
+            drawSmithChart(smithChartCanvas, impedanceHistory); // Clear Smith Chart
+            showMessage('Impedance history cleared successfully!');
+        } else {
+            const errorText = await response.text();
+            showMessage(`Error clearing history: ${errorText}`, 'error');
+        }
+    } catch (error) {
+        console.error('Error clearing history:', error);
+        showMessage('Failed to clear history. Please try again.', 'error');
+    }
+});
+
+            showMessage('Sweep CSV file generated and downloaded!');
+        } else {
+            const errorText = await response.text();
+            showMessage(`Error saving sweep CSV: ${errorText}`, `error`);
+        }
+    } catch (error) {
+        console.error('Error saving sweep CSV:', error);
+        showMessage('Failed to save sweep CSV. Please try again.', `error`);
+    }
+}
+
+// Event listener for the custom sweep export button
+btnExportCustomImpedanceSweep.addEventListener('click', handleSweepExport);
 
 // --- Initial Page Load Function ---
 /**
@@ -401,7 +580,7 @@ async function initPage() {
     }
 
     // Initial draw of Smith Chart (will be empty if no history)
-    drawSmithChart(impedanceHistory);
+    drawSmithChart(smithChartCanvas,impedanceHistory);
     // Initial update of impedance table (will show "No data" if empty)
     updateImpedanceTable();
 }
