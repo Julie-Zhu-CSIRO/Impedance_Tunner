@@ -345,35 +345,7 @@ btnExportCustomImpedance.addEventListener('click', async () => {
         showMessage('Please enter a filename for export.', 'error');
         return;
     }
-    try {
-        const response = await fetch('/save_data_csv', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ filename: filename })
-        });
-
-        if (response.ok) {
-            // Trigger file download
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = filename.endsWith('.csv') ? filename : `${filename}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-            showMessage('CSV file generated and downloaded!');
-        } else {
-            const errorText = await response.text();
-            showMessage(`Error saving CSV: ${errorText}`, `error`);
-        }
-    } catch (error) {
-        console.error('Error saving CSV:', error);
-        showMessage('Failed to save CSV. Please try again.', `error`);
-    }
+    saveCSV(impedanceHistory, filename);
 });
 
 // Event listener for the Clear History button
@@ -401,9 +373,7 @@ btnClearHistory.addEventListener('click', async () => {
 
 // --- Sweep Parameter Functions ----------------------------------------------------------------------
 // Event listener for the Start Sweep button
-btnStartSweep.addEventListener('click', async () => {
-    startSweep();
-});
+btnStartSweep.addEventListener('click', startSweep);
 
 // Starts a frequency sweep.
 async function startSweep() {
@@ -439,6 +409,13 @@ async function startSweep() {
 
         if (response.ok) {
             showMessage('Frequency sweep started successfully!');
+
+            sweepImpedanceHistory = await response.json();
+            console.log(sweepImpedanceHistory);
+            updateSweepImpedanceTable();
+            drawSmithChart(smithChartCanvasSweep, sweepImpedanceHistory);
+            realImpedanceSweepSpan.innerHTML = sweepImpedanceHistory[sweepImpedanceHistory.length -1].real_impedance.toFixed(3);
+            imagImpedanceSweepSpan.innerHTML = sweepImpedanceHistory[sweepImpedanceHistory.length -1].imag_impedance.toFixed(3);
         } else {
             const errorText = await response.text();
             showMessage(`Error starting sweep: ${errorText}`, 'error');
@@ -473,7 +450,7 @@ function updateSweepImpedanceTable() {
     sweepImpedanceHistory.forEach((data, index) => {
         const row = sweepImpedanceResultsTableBody.insertRow();
         row.insertCell().textContent = index + 1;
-        row.insertCell().textContent = data.motor_positions ? data.motor_positions.join(', ') : 'N/A'; // Motor positions (handle potential absence)
+        row.insertCell().textContent = data.motor_positions; // Motor positions
         row.insertCell().textContent = data.frequency_mhz.toFixed(1); // Frequency
         row.insertCell().textContent = data.real_impedance.toFixed(2);
         row.insertCell().textContent = data.imag_impedance.toFixed(2);
@@ -499,59 +476,30 @@ async function handleSweepExport() {
         showMessage('Please enter a filename for sweep export.', 'error');
         return;
     }
-    try {
-        // You will need a backend endpoint that specifically saves the sweep history.
-        // Assuming you have a /save_sweep_data_csv endpoint
-        const response = await fetch('/save_sweep_data_csv', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ filename: filename, data: sweepImpedanceHistory }) // Send the history data
-        });
-
-        if (response.ok) {
-            const blob = await response.blob();
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = filename.endsWith('.csv') ? filename : `${filename}.csv`;
-            document.body.appendChild(a);
-            a.click();
-            window.URL.revokeObjectURL(url);
-// Event listener for the Clear History button
-btnClearHistory.addEventListener('click', async () => {
-    try {
-        const response = await fetch('/clear_impedance_history', {
-            method: 'POST' // Use POST for state-changing operations
-        });
-
-        if (response.ok) {
-            impedanceHistory = []; // Clear client-side history
-            updateImpedanceTable(); // Update table to show no data
-            drawSmithChart(smithChartCanvas, impedanceHistory); // Clear Smith Chart
-            showMessage('Impedance history cleared successfully!');
-        } else {
-            const errorText = await response.text();
-            showMessage(`Error clearing history: ${errorText}`, 'error');
-        }
-    } catch (error) {
-        console.error('Error clearing history:', error);
-        showMessage('Failed to clear history. Please try again.', 'error');
-    }
-});
-
-            showMessage('Sweep CSV file generated and downloaded!');
-        } else {
-            const errorText = await response.text();
-            showMessage(`Error saving sweep CSV: ${errorText}`, `error`);
-        }
-    } catch (error) {
-        console.error('Error saving sweep CSV:', error);
-        showMessage('Failed to save sweep CSV. Please try again.', `error`);
-    }
+    saveCSV(sweepImpedanceHistory, filename);
 }
+
+function saveCSV(data, filename) {
+  const csvRows = [];
+  const headers = Object.keys(data[0]);
+  csvRows.push(headers.join(','));
+
+  for (const row of data) {
+    const values = headers.map(header => {
+      const escaped = ('' + row[header]).replace(/"/g, '\\"');
+      return `"${escaped}"`;
+    });
+    csvRows.push(values.join(','));
+  }
+
+  const csvContent = csvRows.join('\n');
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.setAttribute('download', filename);
+  link.click();
+};
 
 // Event listener for the custom sweep export button
 btnExportCustomImpedanceSweep.addEventListener('click', handleSweepExport);

@@ -95,7 +95,7 @@ def getAllPositions():
         position_all.append(it.motors[i].request_position())
     print(f'All motors position listed: {position_all}')
     # create comma separated values (csv) string
-    positionStr = (',').join(position_all)
+    positionStr = str(position_all)[1:-1]
     return positionStr
 
 # VNA Impedance Measurement Handler (Single Measurement Tab) ......................
@@ -247,9 +247,13 @@ def start_sweep():
 
     try:
         # Move to start position
-        it.motors[motor_index].move_motor(start_value)
-
         current_position = it.motors[motor_index].request_position()
+        it.motors[motor_index].move_motor(start_value - current_position)
+
+        current_position = [
+            it.motors[motor_index_tmp].request_position() # Get actual position after move
+            for motor_index_tmp in range(it.NUM_MOTORS)
+        ]
         # Adjust stop_value check to handle both increasing and decreasing sweeps
         is_increasing = stop_value >= start_value
 
@@ -263,10 +267,12 @@ def start_sweep():
              return jsonify({"error": "Step size must be negative for decreasing sweep."}), 400
 
         i = 0
-        while current_position < stop_value:
+        while current_position[motor_index] < stop_value:
             it.motors[motor_index].move_motor(step_size)
-            current_position = it.motors[motor_index].request_position() # Get actual position after move
-
+            current_position = [
+                it.motors[motor_index_tmp].request_position() # Get actual position after move
+                for motor_index_tmp in range(it.NUM_MOTORS)
+            ]
             # Get impedance data
             impedance_data_from_vna = vna.get_impedance(target_frequency_hz)
 
@@ -296,57 +302,6 @@ def start_sweep():
         tracebackStr = traceback.format_exc()
         print(tracebackStr)
         return jsonify({"error": f"An error occurred during the sweep: {e}\n{tracebackStr}"}), 500
-
-
-@app.route('/save_sweep_results_csv', methods=['POST'])
-def save_sweep_results_csv():
-    """
-    Generates a CSV file from the stored sweep impedance data.
-    The filename is provided by the user.
-    """
-    data = request.get_json()
-    filename = data.get('filename', 'sweep_results').strip()
-    if not filename.endswith('.csv'):
-        filename += '.csv'
-
-    si = io.StringIO() # Create an in-memory text buffer
-    cw = csv.writer(si) # Create a CSV writer for the buffer
-
-    # Write header with all fields
-    cw.writerow([
-        'Data Number',
-        'Motor Position',
-        'Frequency (MHz)',
-        'Real Impedance (Ohms)',
-        'Imaginary Impedance (Ohms)',
-        'Color'
-    ])
-
-    # Write data rows from sweep_history
-    for i, row in enumerate(sweep_history):
-        motor_pos = row.get('motor_positions', ['N/A', 'N/A', 'N/A', 'N/A'])
-         # Ensure motor_pos has exactly 4 elements, pad with 'N/A' if needed
-        while len(motor_pos) < 4:
-            motor_pos.append('N/A')
-
-        cw.writerow([
-            row.get('id', i + 1), # Use stored id or row index + 1
-            row.get('motor_positions',''),
-            row.get('frequency_mhz', ''),
-            row.get('real_impedance', ''),
-            row.get('imag_impedance', ''),
-            row.get('color', '')
-        ])
-
-    output = io.BytesIO(si.getvalue().encode('utf-8')) # Encode string to bytes
-    output.seek(0); # Go to the beginning of the stream
-
-    return send_file(
-        output,
-        mimetype='text/csv',
-        as_attachment=True,
-        download_name=filename
-    )
 
 @app.route('/clear_sweep_history', methods=['POST'])
 def clear_sweep_history():
